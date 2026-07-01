@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>자산 추이 계산기</title>
+
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --sub: #667085;
+      --line: #dfe5ec;
+      --primary: #3157d5;
+      --primary-dark: #2342ad;
+      --danger: #d64242;
+      --soft: #eef3ff;
+      --shadow: 0 12px 32px rgba(32, 56, 117, 0.09);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1200px, calc(100% - 28px));
+      margin: 28px auto 60px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #253d9c, #5a79ed);
+      color: white;
+      border-radius: 26px;
+      padding: 34px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(30px, 5vw, 48px);
+      letter-spacing: -1.5px;
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.7;
+      opacity: 0.92;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .section-description {
+      color: var(--sub);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #465166;
+      margin-bottom: 7px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 13px;
+      background: white;
+      color: var(--text);
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 87, 213, 0.12);
+    }
+
+    .row-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .entry-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfcfe;
+    }
+
+    .entry-row.fixed-row {
+      grid-template-columns: 1fr 1fr 1.4fr 1fr 1.4fr auto;
+    }
+
+    .entry-row.one-time-row {
+      grid-template-columns: 1fr 1.5fr 2fr auto;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 17px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-soft {
+      background: var(--soft);
+      color: var(--primary-dark);
+    }
+
+    .btn-danger {
+      background: #fff0f0;
+      color: var(--danger);
+      padding: 11px 13px;
+    }
+
+    .calculate-button {
+      width: 100%;
+      margin-top: 20px;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      background: linear-gradient(135deg, #2748be, #5476e8);
+      color: white;
+      font-weight: 900;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 9px 22px rgba(49, 87, 213, 0.22);
+    }
+
+    .results {
+      display: none;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .summary-item {
+      border: 1px solid var(--line);
+      background: #fbfcff;
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .summary-label {
+      color: var(--sub);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 21px;
+      font-weight: 900;
+      word-break: keep-all;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 430px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: white;
+      overflow: hidden;
+    }
+
+    #assetChart {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .tooltip {
+      display: none;
+      position: absolute;
+      pointer-events: none;
+      background: rgba(24, 32, 53, 0.94);
+      color: white;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 13px;
+      line-height: 1.55;
+      transform: translate(-50%, calc(-100% - 12px));
+      white-space: nowrap;
+      z-index: 5;
+    }
+
+    .recommendation-box {
+      margin-top: 18px;
+      border-radius: 16px;
+      padding: 18px;
+      background: #f6f8ff;
+      border: 1px solid #dce5ff;
+    }
+
+    .recommendation-box h3 {
+      margin: 0 0 12px;
+    }
+
+    .recommendation-list {
+      margin: 0;
+      padding-left: 20px;
+      line-height: 1.8;
+      color: #3f4b63;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      font-size: 14px;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      background: #f7f9fc;
+      color: #475467;
+    }
+
+    .note {
+      margin-top: 13px;
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+
+    .inflation-panel {
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid #dbe4ff;
+      background: linear-gradient(135deg, #f7f9ff, #fffaf5);
+      border-radius: 18px;
+    }
+
+    .inflation-panel h3 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    .inflation-panel > p {
+      margin: 0 0 16px;
+      color: var(--sub);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .inflation-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .inflation-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 16px;
+    }
+
+    .inflation-card-title {
+      color: var(--sub);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .inflation-card-value {
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .inflation-card-detail {
+      margin-top: 7px;
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .price-example-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .price-example {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 14px;
+      padding: 13px;
+    }
+
+    .price-example-name {
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .price-example-result {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--primary-dark);
+      line-height: 1.45;
+    }
+
+    .price-example-current {
+      color: var(--sub);
+      font-size: 11px;
+      margin-top: 5px;
+    }
+
+    @media (max-width: 900px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .inflation-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .price-example-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .entry-row,
+      .entry-row.fixed-row,
+      .entry-row.one-time-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .remove-cell {
+        grid-column: 1 / -1;
+      }
+
+      .remove-cell .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        width: min(100% - 18px, 1200px);
+        margin-top: 10px;
+      }
+
+      .hero {
+        padding: 24px 20px;
+        border-radius: 20px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+
+      .entry-row,
+      .entry-row.fixed-row,
+      .entry-row.one-time-row {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .inflation-card-grid,
+      .price-example-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-wrap {
+        height: 340px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>자산 추이 계산기</h1>
+      <p>
+        기간별 소득, 현재 자산, 투자 수익률, 생활비, 고정 지출과 큰 소비를 입력하면
+        연도별 예상 자산 추이를 계산합니다.
+      </p>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <h2>1. 기본 설정</h2>
+        <p class="section-description">
+          계산 시작 연도와 현재 보유 자산, 연평균 예상 수익률을 입력하세요.
+        </p>
+
+        <div class="grid-3">
+          <div>
+            <label for="startYear">계산 시작 연도</label>
+            <input id="startYear" class="live-input" type="number" value="2026" min="1900" max="2200" />
+          </div>
+
+          <div>
+            <label for="currentAssets">현재 자산</label>
+            <input id="currentAssets" class="live-input" type="number" value="30000000" min="0" step="1000000" />
+          </div>
+
+          <div>
+            <label for="returnRate">연평균 자산 수익률 (%)</label>
+            <input id="returnRate" class="live-input" type="number" value="5" step="0.1" />
+          </div>
+
+          <div>
+            <label for="inflationRate">연평균 물가 상승률 (%)</label>
+            <input id="inflationRate" class="live-input" type="number" value="2.5" step="0.1" />
+          </div>
+
+          <div>
+            <label for="salaryGrowthRate">연평균 연봉 상승률 (%)</label>
+            <input id="salaryGrowthRate" class="live-input" type="number" value="3" step="0.1" />
+          </div>
+
+          <div>
+            <label for="expenseInflation">소비 증가율 적용</label>
+            <select id="expenseInflation" class="live-input">
+              <option value="yes" selected>물가 상승률과 동일하게 적용</option>
+              <option value="no">소비 금액 고정</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="showRealAssets">결과 그래프 표시 기준</label>
+            <select id="showRealAssets" class="live-input">
+              <option value="both" selected>명목 자산 + 현재가치 자산</option>
+              <option value="nominal">명목 자산만</option>
+              <option value="real">현재가치 자산만</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. 기간별 소득</h2>
+        <p class="section-description">
+          예: 2026~2030년 연봉 6,000만 원, 2031~2050년 월급 600만 원처럼 여러 구간을 추가할 수 있습니다.
+        </p>
+
+        <div id="incomeRows" class="row-list"></div>
+
+        <div class="button-row">
+          <button class="btn btn-soft" type="button" onclick="addIncomeRow()">+ 소득 기간 추가</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3. 기본 소비</h2>
+        <p class="section-description">
+          매년 또는 매달 반복되는 기본 생활비를 입력하세요.
+        </p>
+
+        <div class="grid-2">
+          <div>
+            <label for="baseExpense">기본 소비 금액</label>
+            <input id="baseExpense" class="live-input" type="number" value="2500000" min="0" step="100000" />
+          </div>
+
+          <div>
+            <label for="baseExpenseUnit">소비 기준</label>
+            <select id="baseExpenseUnit" class="live-input">
+              <option value="monthly">한 달 소비</option>
+              <option value="annual">1년 소비</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. 중간에 추가되는 고정 지출</h2>
+        <p class="section-description">
+          특정 기간에만 발생하는 월세, 대출 상환, 교육비, 자녀 양육비 등을 추가할 수 있습니다.
+        </p>
+
+        <div id="fixedExpenseRows" class="row-list"></div>
+
+        <div class="button-row">
+          <button class="btn btn-soft" type="button" onclick="addFixedExpenseRow()">+ 고정 지출 추가</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>5. 큰 일회성 소비</h2>
+        <p class="section-description">
+          자동차, 주택 계약금, 결혼, 유학, 여행처럼 특정 연도에 한 번 발생하는 지출을 입력하세요.
+        </p>
+
+        <div id="oneTimeExpenseRows" class="row-list"></div>
+
+        <div class="button-row">
+          <button class="btn btn-soft" type="button" onclick="addOneTimeExpenseRow()">+ 큰 소비 추가</button>
+        </div>
+
+
+        <div style="margin-top: 22px;">
+          <h3 style="margin-bottom: 8px;">물가 체감 물품 가격</h3>
+          <p class="section-description" style="margin-bottom: 14px;">
+            현재 가격을 입력하면 마지막 계산 연도의 예상 가격을 보여줍니다.
+          </p>
+
+          <div class="grid-4">
+            <div>
+              <label for="coffeePrice">커피 현재 가격</label>
+              <input id="coffeePrice" class="live-input" type="number" value="5000" min="0" step="100" />
+            </div>
+
+            <div>
+              <label for="lunchPrice">점심 현재 가격</label>
+              <input id="lunchPrice" class="live-input" type="number" value="10000" min="0" step="100" />
+            </div>
+
+            <div>
+              <label for="rentPrice">월세 현재 가격</label>
+              <input id="rentPrice" class="live-input" type="number" value="700000" min="0" step="10000" />
+            </div>
+
+            <div>
+              <label for="carPrice">자동차 현재 가격</label>
+              <input id="carPrice" class="live-input" type="number" value="30000000" min="0" step="100000" />
+            </div>
+          </div>
+        </div>
+
+        <button class="calculate-button" type="button" onclick="calculateAssets()">
+          자산 추이 계산하기
+        </button>
+        <p class="note">
+          한 번 계산한 뒤에는 숫자나 선택값을 바꾸는 즉시 결과와 그래프가 자동으로 갱신됩니다.
+        </p>
+      </section>
+
+      <section id="results" class="card results">
+        <h2>6. 계산 결과</h2>
+        <p class="section-description">
+          그래프 위에 마우스를 올리거나 모바일에서 터치하면 해당 연도와 예상 자산을 확인할 수 있습니다.
+        </p>
+
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-label">마지막 연도</div>
+            <div id="summaryEndYear" class="summary-value">-</div>
+          </div>
+
+          <div class="summary-item">
+            <div class="summary-label">명목 예상 자산</div>
+            <div id="summaryFinalAssets" class="summary-value">-</div>
+          </div>
+
+          <div class="summary-item">
+            <div class="summary-label">현재가치 환산 자산</div>
+            <div id="summaryRealAssets" class="summary-value">-</div>
+          </div>
+
+          <div class="summary-item">
+            <div class="summary-label">누적 소득</div>
+            <div id="summaryIncome" class="summary-value">-</div>
+          </div>
+
+          <div class="summary-item">
+            <div class="summary-label">누적 소비</div>
+            <div id="summaryExpense" class="summary-value">-</div>
+          </div>
+        </div>
+
+
+        <div class="inflation-panel">
+          <h3>물가 상승 체감하기</h3>
+          <p>
+            같은 돈으로 살 수 있는 양이 얼마나 달라지는지 생활비와 자산 구매력으로 보여줍니다.
+          </p>
+
+          <div class="inflation-card-grid">
+            <div class="inflation-card">
+              <div class="inflation-card-title">현재 월 생활비</div>
+              <div id="inflationCurrentMonthly" class="inflation-card-value">-</div>
+              <div class="inflation-card-detail">입력한 기본 소비를 월 기준으로 환산한 금액</div>
+            </div>
+
+            <div class="inflation-card">
+              <div class="inflation-card-title">10년 뒤 예상 월 생활비</div>
+              <div id="inflationMonthly10" class="inflation-card-value">-</div>
+              <div id="inflationMonthly10Detail" class="inflation-card-detail">-</div>
+            </div>
+
+            <div class="inflation-card">
+              <div class="inflation-card-title">20년 뒤 예상 월 생활비</div>
+              <div id="inflationMonthly20" class="inflation-card-value">-</div>
+              <div id="inflationMonthly20Detail" class="inflation-card-detail">-</div>
+            </div>
+
+            <div class="inflation-card">
+              <div class="inflation-card-title">마지막 연도 예상 월 생활비</div>
+              <div id="inflationMonthlyEnd" class="inflation-card-value">-</div>
+              <div id="inflationMonthlyEndDetail" class="inflation-card-detail">-</div>
+            </div>
+
+            <div class="inflation-card">
+              <div class="inflation-card-title">현재 1억 원과 같은 구매력</div>
+              <div id="inflationOneHundredMillionFuture" class="inflation-card-value">-</div>
+              <div id="inflationOneHundredMillionFutureDetail" class="inflation-card-detail">-</div>
+            </div>
+
+            <div class="inflation-card">
+              <div class="inflation-card-title">미래 1억 원의 현재 구매력</div>
+              <div id="inflationFutureHundredMillionPresent" class="inflation-card-value">-</div>
+              <div id="inflationFutureHundredMillionPresentDetail" class="inflation-card-detail">-</div>
+            </div>
+
+            <div class="inflation-card">
+              <div class="inflation-card-title">최종 자산의 구매력 차이</div>
+              <div id="inflationAssetGap" class="inflation-card-value">-</div>
+              <div id="inflationAssetGapDetail" class="inflation-card-detail">-</div>
+            </div>
+
+            <div class="inflation-card">
+              <div class="inflation-card-title">자산으로 생활 가능한 기간</div>
+              <div id="inflationLivingYears" class="inflation-card-value">-</div>
+              <div id="inflationLivingYearsDetail" class="inflation-card-detail">-</div>
+            </div>
+          </div>
+
+          <div class="price-example-grid">
+            <div class="price-example">
+              <div class="price-example-name">☕ 커피</div>
+              <div id="futureCoffeePrice" class="price-example-result">-</div>
+              <div id="currentCoffeePriceText" class="price-example-current">-</div>
+            </div>
+
+            <div class="price-example">
+              <div class="price-example-name">🍚 점심</div>
+              <div id="futureLunchPrice" class="price-example-result">-</div>
+              <div id="currentLunchPriceText" class="price-example-current">-</div>
+            </div>
+
+            <div class="price-example">
+              <div class="price-example-name">🏠 월세</div>
+              <div id="futureRentPrice" class="price-example-result">-</div>
+              <div id="currentRentPriceText" class="price-example-current">-</div>
+            </div>
+
+            <div class="price-example">
+              <div class="price-example-name">🚗 자동차</div>
+              <div id="futureCarPrice" class="price-example-result">-</div>
+              <div id="currentCarPriceText" class="price-example-current">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-wrap" id="chartWrap">
+          <canvas id="assetChart"></canvas>
+          <div id="chartTooltip" class="tooltip"></div>
+        </div>
+
+        <div class="recommendation-box">
+          <h3>예상 소비 항목 추천</h3>
+          <ul id="recommendationList" class="recommendation-list"></ul>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>연도</th>
+                <th>연간 소득</th>
+                <th>투자 수익</th>
+                <th>연간 소비</th>
+                <th>명목 연말 자산</th>
+                <th>현재가치 자산</th>
+              </tr>
+            </thead>
+            <tbody id="resultTableBody"></tbody>
+          </table>
+        </div>
+
+        <p class="note">
+          계산은 입력한 수익률이 매년 동일하게 적용된다고 가정한 단순 시뮬레이션입니다.
+          세금, 물가 상승률, 투자 손실 가능성, 소득 공백 등은 별도로 반영하지 않았습니다.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    /*
+      ================================
+      수정하기 쉬운 주요 설정
+      ================================
+    */
+
+    const SETTINGS = {
+      defaultIncomeStart: 2026,
+      defaultIncomeEnd: 2030,
+      defaultIncomeAmount: 60000000,
+      graphTickYears: 5,
+      currencyUnit: "원"
+    };
+
+    const RECOMMENDED_EXPENSES = [
+      {
+        title: "비상금",
+        text: "기본 생활비 3~6개월치를 별도 현금성 자산으로 확보하는 것을 고려하세요."
+      },
+      {
+        title: "주거 비용",
+        text: "월세, 전세대출 이자, 관리비, 이사비, 주택 수리비를 장기 계획에 포함해 보세요."
+      },
+      {
+        title: "자동차 비용",
+        text: "차량 구매비뿐 아니라 보험료, 유류비, 정비비, 자동차세도 함께 반영하는 것이 좋습니다."
+      },
+      {
+        title: "의료비와 보험료",
+        text: "정기 보험료와 예상하지 못한 의료비를 별도 고정 지출 또는 일회성 지출로 추가하세요."
+      },
+      {
+        title: "세금과 공과금",
+        text: "소득세, 재산 관련 세금, 통신비, 전기·가스·수도요금을 빠뜨리지 않았는지 확인하세요."
+      },
+      {
+        title: "결혼·출산·교육",
+        text: "결혼식, 신혼집, 출산, 자녀 양육 및 교육비는 시기별로 큰 차이가 날 수 있습니다."
+      },
+      {
+        title: "여행과 취미",
+        text: "삶의 질을 위한 여행비, 취미비, 전자기기 교체비도 현실적인 범위에서 포함하세요."
+      },
+      {
+        title: "물가 상승",
+        text: "현재 버전은 소비 증가율을 자동 반영하지 않으므로 장기 계산에서는 소비액을 기간별로 나눠 입력하는 방법을 고려하세요."
+      }
+    ];
+
+    let chartData = [];
+    let hoveredIndex = -1;
+
+    function numberValue(elementId) {
+      const value = Number(document.getElementById(elementId).value);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function formatWon(value) {
+      const sign = value < 0 ? "-" : "";
+      const absolute = Math.abs(Math.round(value));
+
+      if (absolute >= 100000000) {
+        return sign + (absolute / 100000000).toLocaleString("ko-KR", {
+          maximumFractionDigits: 2
+        }) + "억 원";
+      }
+
+      if (absolute >= 10000) {
+        return sign + (absolute / 10000).toLocaleString("ko-KR", {
+          maximumFractionDigits: 1
+        }) + "만 원";
+      }
+
+      return sign + absolute.toLocaleString("ko-KR") + "원";
+    }
+
+    function annualize(amount, unit) {
+      return unit === "monthly" ? amount * 12 : amount;
+    }
+
+    function makeRemoveButton() {
+      return `
+        <div class="remove-cell">
+          <button class="btn btn-danger" type="button" onclick="this.closest('.entry-row').remove()">
+            삭제
+          </button>
+        </div>
+      `;
+    }
+
+    function addIncomeRow(values = {}) {
+      const row = document.createElement("div");
+      row.className = "entry-row income-row";
+
+      row.innerHTML = `
+        <div>
+          <label>시작 연도</label>
+          <input class="income-start live-input" type="number" value="${values.start ?? SETTINGS.defaultIncomeStart}" />
+        </div>
+
+        <div>
+          <label>종료 연도</label>
+          <input class="income-end live-input" type="number" value="${values.end ?? SETTINGS.defaultIncomeEnd}" />
+        </div>
+
+        <div>
+          <label>소득 금액</label>
+          <input class="income-amount live-input" type="number" min="0" step="100000" value="${values.amount ?? SETTINGS.defaultIncomeAmount}" />
+        </div>
+
+        <div>
+          <label>소득 기준</label>
+          <select class="income-unit live-input">
+            <option value="annual" ${values.unit === "monthly" ? "" : "selected"}>연봉</option>
+            <option value="monthly" ${values.unit === "monthly" ? "selected" : ""}>한 달 소득</option>
+          </select>
+        </div>
+
+        ${makeRemoveButton()}
+      `;
+
+      document.getElementById("incomeRows").appendChild(row);
+    }
+
+    function addFixedExpenseRow(values = {}) {
+      const row = document.createElement("div");
+      row.className = "entry-row fixed-row fixed-expense-row";
+
+      row.innerHTML = `
+        <div>
+          <label>시작 연도</label>
+          <input class="fixed-start live-input" type="number" value="${values.start ?? 2031}" />
+        </div>
+
+        <div>
+          <label>종료 연도</label>
+          <input class="fixed-end live-input" type="number" value="${values.end ?? 2040}" />
+        </div>
+
+        <div>
+          <label>지출 금액</label>
+          <input class="fixed-amount live-input" type="number" min="0" step="100000" value="${values.amount ?? 1000000}" />
+        </div>
+
+        <div>
+          <label>지출 기준</label>
+          <select class="fixed-unit live-input">
+            <option value="monthly" ${values.unit === "annual" ? "" : "selected"}>한 달 지출</option>
+            <option value="annual" ${values.unit === "annual" ? "selected" : ""}>1년 지출</option>
+          </select>
+        </div>
+
+        <div>
+          <label>항목 이름</label>
+          <input class="fixed-name live-input" type="text" value="${values.name ?? "추가 고정 지출"}" />
+        </div>
+
+        ${makeRemoveButton()}
+      `;
+
+      document.getElementById("fixedExpenseRows").appendChild(row);
+    }
+
+    function addOneTimeExpenseRow(values = {}) {
+      const row = document.createElement("div");
+      row.className = "entry-row one-time-row one-time-expense-row";
+
+      row.innerHTML = `
+        <div>
+          <label>발생 연도</label>
+          <input class="one-time-year live-input" type="number" value="${values.year ?? 2030}" />
+        </div>
+
+        <div>
+          <label>지출 금액</label>
+          <input class="one-time-amount live-input" type="number" min="0" step="100000" value="${values.amount ?? 30000000}" />
+        </div>
+
+        <div>
+          <label>항목 이름</label>
+          <input class="one-time-name live-input" type="text" value="${values.name ?? "자동차 구매"}" />
+        </div>
+
+        ${makeRemoveButton()}
+      `;
+
+      document.getElementById("oneTimeExpenseRows").appendChild(row);
+    }
+
+    function readIncomePeriods() {
+      return [...document.querySelectorAll(".income-row")].map(row => ({
+        start: Number(row.querySelector(".income-start").value),
+        end: Number(row.querySelector(".income-end").value),
+        amount: Number(row.querySelector(".income-amount").value),
+        unit: row.querySelector(".income-unit").value
+      })).filter(item =>
+        Number.isFinite(item.start) &&
+        Number.isFinite(item.end) &&
+        item.end >= item.start &&
+        item.amount >= 0
+      );
+    }
+
+    function readFixedExpenses() {
+      return [...document.querySelectorAll(".fixed-expense-row")].map(row => ({
+        start: Number(row.querySelector(".fixed-start").value),
+        end: Number(row.querySelector(".fixed-end").value),
+        amount: Number(row.querySelector(".fixed-amount").value),
+        unit: row.querySelector(".fixed-unit").value,
+        name: row.querySelector(".fixed-name").value.trim()
+      })).filter(item =>
+        Number.isFinite(item.start) &&
+        Number.isFinite(item.end) &&
+        item.end >= item.start &&
+        item.amount >= 0
+      );
+    }
+
+    function readOneTimeExpenses() {
+      return [...document.querySelectorAll(".one-time-expense-row")].map(row => ({
+        year: Number(row.querySelector(".one-time-year").value),
+        amount: Number(row.querySelector(".one-time-amount").value),
+        name: row.querySelector(".one-time-name").value.trim()
+      })).filter(item =>
+        Number.isFinite(item.year) &&
+        item.amount >= 0
+      );
+    }
+
+    function calculateAssets(options = {}) {
+      const shouldScroll = options.scroll !== false;
+      const showAlerts = options.showAlerts !== false;
+
+      const startYear = numberValue("startYear");
+      const currentAssets = numberValue("currentAssets");
+      const returnRate = numberValue("returnRate") / 100;
+      const inflationRate = numberValue("inflationRate") / 100;
+      const salaryGrowthRate = numberValue("salaryGrowthRate") / 100;
+      const applyExpenseInflation =
+        document.getElementById("expenseInflation").value === "yes";
+
+      const baseExpense = annualize(
+        numberValue("baseExpense"),
+        document.getElementById("baseExpenseUnit").value
+      );
+
+      const incomes = readIncomePeriods();
+      const fixedExpenses = readFixedExpenses();
+      const oneTimeExpenses = readOneTimeExpenses();
+
+      const allEndYears = [
+        startYear,
+        ...incomes.map(item => item.end),
+        ...fixedExpenses.map(item => item.end),
+        ...oneTimeExpenses.map(item => item.year)
+      ];
+
+      const endYear = Math.max(...allEndYears);
+
+      if (!Number.isFinite(startYear) || endYear < startYear) {
+        if (showAlerts) alert("계산 연도를 확인해 주세요.");
+        return;
+      }
+
+      if (endYear - startYear > 150) {
+        if (showAlerts) alert("계산 기간은 150년 이하로 설정해 주세요.");
+        return;
+      }
+
+      let assets = currentAssets;
+      let totalIncome = 0;
+      let totalExpense = 0;
+      chartData = [];
+
+      for (let year = startYear; year <= endYear; year++) {
+        const elapsedYears = year - startYear;
+        const inflationFactor = Math.pow(1 + inflationRate, elapsedYears);
+
+        let annualIncome = 0;
+        let annualExpense = applyExpenseInflation
+          ? baseExpense * inflationFactor
+          : baseExpense;
+
+        incomes.forEach(item => {
+          if (year >= item.start && year <= item.end) {
+            const yearsFromIncomeStart = year - item.start;
+            const baseAnnualIncome = annualize(item.amount, item.unit);
+
+            // 각 소득 구간의 첫 해를 기준으로 연봉 상승률 적용
+            annualIncome +=
+              baseAnnualIncome *
+              Math.pow(1 + salaryGrowthRate, yearsFromIncomeStart);
+          }
+        });
+
+        fixedExpenses.forEach(item => {
+          if (year >= item.start && year <= item.end) {
+            const baseFixedExpense = annualize(item.amount, item.unit);
+
+            annualExpense += applyExpenseInflation
+              ? baseFixedExpense * inflationFactor
+              : baseFixedExpense;
+          }
+        });
+
+        oneTimeExpenses.forEach(item => {
+          if (year === item.year) {
+            // 일회성 소비는 현재 가격 기준으로 입력했다고 가정하고 물가 적용
+            annualExpense += applyExpenseInflation
+              ? item.amount * inflationFactor
+              : item.amount;
+          }
+        });
+
+        const investmentReturn = assets * returnRate;
+        assets = assets + investmentReturn + annualIncome - annualExpense;
+
+        // 시작 연도 구매력 기준 현재가치
+        const realAssets = assets / inflationFactor;
+
+        totalIncome += annualIncome;
+        totalExpense += annualExpense;
+
+        chartData.push({
+          year,
+          income: annualIncome,
+          investmentReturn,
+          expense: annualExpense,
+          assets,
+          realAssets
+        });
+      }
+
+      updateResults({
+        endYear,
+        finalAssets: assets,
+        finalRealAssets: chartData.at(-1)?.realAssets ?? assets,
+        totalIncome,
+        totalExpense
+      });
+
+      document.getElementById("results").style.display = "block";
+
+      requestAnimationFrame(() => {
+        resizeCanvas();
+        drawChart();
+
+        if (shouldScroll) {
+          document.getElementById("results").scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }
+      });
+    }
+
+    function updateResults(summary) {
+      document.getElementById("summaryEndYear").textContent = summary.endYear + "년";
+      document.getElementById("summaryFinalAssets").textContent = formatWon(summary.finalAssets);
+      document.getElementById("summaryRealAssets").textContent = formatWon(summary.finalRealAssets);
+      document.getElementById("summaryIncome").textContent = formatWon(summary.totalIncome);
+      document.getElementById("summaryExpense").textContent = formatWon(summary.totalExpense);
+
+      const tbody = document.getElementById("resultTableBody");
+      tbody.innerHTML = "";
+
+      chartData.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.year}년</td>
+          <td>${formatWon(item.income)}</td>
+          <td>${formatWon(item.investmentReturn)}</td>
+          <td>${formatWon(item.expense)}</td>
+          <td>${formatWon(item.assets)}</td>
+          <td>${formatWon(item.realAssets)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      updateInflationExperience(summary);
+
+      const recommendationList = document.getElementById("recommendationList");
+      recommendationList.innerHTML = RECOMMENDED_EXPENSES
+        .map(item => `<li><strong>${item.title}:</strong> ${item.text}</li>`)
+        .join("");
+    }
+
+
+    function updateInflationExperience(summary) {
+      const startYear = numberValue("startYear");
+      const endYear = summary.endYear;
+      const elapsedYears = Math.max(0, endYear - startYear);
+      const inflationRate = numberValue("inflationRate") / 100;
+      const applyExpenseInflation =
+        document.getElementById("expenseInflation").value === "yes";
+
+      const baseExpenseAmount = numberValue("baseExpense");
+      const baseExpenseUnit = document.getElementById("baseExpenseUnit").value;
+      const currentMonthlyExpense =
+        baseExpenseUnit === "monthly" ? baseExpenseAmount : baseExpenseAmount / 12;
+
+      const priceAfterYears = (price, years) =>
+        price * Math.pow(1 + inflationRate, Math.max(0, years));
+
+      const monthly10 = applyExpenseInflation
+        ? priceAfterYears(currentMonthlyExpense, 10)
+        : currentMonthlyExpense;
+
+      const monthly20 = applyExpenseInflation
+        ? priceAfterYears(currentMonthlyExpense, 20)
+        : currentMonthlyExpense;
+
+      const monthlyEnd = applyExpenseInflation
+        ? priceAfterYears(currentMonthlyExpense, elapsedYears)
+        : currentMonthlyExpense;
+
+      document.getElementById("inflationCurrentMonthly").textContent =
+        formatWon(currentMonthlyExpense);
+
+      document.getElementById("inflationMonthly10").textContent =
+        formatWon(monthly10);
+
+      document.getElementById("inflationMonthly10Detail").textContent =
+        `${startYear + 10}년 기준 · 현재보다 ${formatWon(monthly10 - currentMonthlyExpense)} 증가`;
+
+      document.getElementById("inflationMonthly20").textContent =
+        formatWon(monthly20);
+
+      document.getElementById("inflationMonthly20Detail").textContent =
+        `${startYear + 20}년 기준 · 현재보다 ${formatWon(monthly20 - currentMonthlyExpense)} 증가`;
+
+      document.getElementById("inflationMonthlyEnd").textContent =
+        formatWon(monthlyEnd);
+
+      document.getElementById("inflationMonthlyEndDetail").textContent =
+        `${endYear}년 기준 · 현재보다 ${formatWon(monthlyEnd - currentMonthlyExpense)} 증가`;
+
+      const futureEquivalentOfHundredMillion =
+        100000000 * Math.pow(1 + inflationRate, elapsedYears);
+
+      const presentValueOfFutureHundredMillion =
+        100000000 / Math.pow(1 + inflationRate, elapsedYears);
+
+      document.getElementById("inflationOneHundredMillionFuture").textContent =
+        formatWon(futureEquivalentOfHundredMillion);
+
+      document.getElementById("inflationOneHundredMillionFutureDetail").textContent =
+        `현재 1억 원의 구매력을 ${endYear}년에 유지하려면 필요한 금액`;
+
+      document.getElementById("inflationFutureHundredMillionPresent").textContent =
+        formatWon(presentValueOfFutureHundredMillion);
+
+      document.getElementById("inflationFutureHundredMillionPresentDetail").textContent =
+        `${endYear}년의 1억 원을 현재 구매력으로 환산한 금액`;
+
+      const assetGap = summary.finalAssets - summary.finalRealAssets;
+      const erosionRate = summary.finalAssets !== 0
+        ? Math.abs(assetGap / summary.finalAssets) * 100
+        : 0;
+
+      document.getElementById("inflationAssetGap").textContent =
+        formatWon(assetGap);
+
+      document.getElementById("inflationAssetGapDetail").textContent =
+        `명목 ${formatWon(summary.finalAssets)} → 현재가치 ${formatWon(summary.finalRealAssets)} · 차이 ${erosionRate.toFixed(1)}%`;
+
+      const currentAnnualExpense = currentMonthlyExpense * 12;
+      const finalAnnualExpense = monthlyEnd * 12;
+
+      const yearsAtCurrentExpense = currentAnnualExpense > 0
+        ? summary.finalAssets / currentAnnualExpense
+        : 0;
+
+      const yearsAtFutureExpense = finalAnnualExpense > 0
+        ? summary.finalAssets / finalAnnualExpense
+        : 0;
+
+      document.getElementById("inflationLivingYears").textContent =
+        `${yearsAtFutureExpense.toFixed(1)}년`;
+
+      document.getElementById("inflationLivingYearsDetail").textContent =
+        `현재 생활비 기준 ${yearsAtCurrentExpense.toFixed(1)}년 · ${endYear}년 물가 반영 생활비 기준 ${yearsAtFutureExpense.toFixed(1)}년`;
+
+      const examples = [
+        {
+          inputId: "coffeePrice",
+          futureId: "futureCoffeePrice",
+          currentTextId: "currentCoffeePriceText"
+        },
+        {
+          inputId: "lunchPrice",
+          futureId: "futureLunchPrice",
+          currentTextId: "currentLunchPriceText"
+        },
+        {
+          inputId: "rentPrice",
+          futureId: "futureRentPrice",
+          currentTextId: "currentRentPriceText"
+        },
+        {
+          inputId: "carPrice",
+          futureId: "futureCarPrice",
+          currentTextId: "currentCarPriceText"
+        }
+      ];
+
+      examples.forEach(example => {
+        const currentPrice = numberValue(example.inputId);
+        const futurePrice = priceAfterYears(currentPrice, elapsedYears);
+
+        document.getElementById(example.futureId).textContent =
+          `${endYear}년 약 ${formatWon(futurePrice)}`;
+
+        document.getElementById(example.currentTextId).textContent =
+          `현재 ${formatWon(currentPrice)} → ${formatWon(futurePrice - currentPrice)} 증가`;
+      });
+    }
+
+    function resizeCanvas() {
+      const canvas = document.getElementById("assetChart");
+      const wrap = document.getElementById("chartWrap");
+      const ratio = window.devicePixelRatio || 1;
+
+      canvas.width = Math.floor(wrap.clientWidth * ratio);
+      canvas.height = Math.floor(wrap.clientHeight * ratio);
+      canvas.style.width = wrap.clientWidth + "px";
+      canvas.style.height = wrap.clientHeight + "px";
+
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    function drawChart() {
+      if (!chartData.length) return;
+
+      const canvas = document.getElementById("assetChart");
+      const ctx = canvas.getContext("2d");
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const displayMode = document.getElementById("showRealAssets").value;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const padding = {
+        top: 48,
+        right: 24,
+        bottom: 58,
+        left: width < 600 ? 66 : 92
+      };
+
+      const chartWidth = width - padding.left - padding.right;
+      const chartHeight = height - padding.top - padding.bottom;
+
+      let values = [];
+
+      if (displayMode !== "real") {
+        values.push(...chartData.map(item => item.assets));
+      }
+
+      if (displayMode !== "nominal") {
+        values.push(...chartData.map(item => item.realAssets));
+      }
+
+      let minValue = Math.min(0, ...values);
+      let maxValue = Math.max(0, ...values);
+
+      if (minValue === maxValue) maxValue += 1;
+
+      const range = maxValue - minValue;
+      minValue -= range * 0.1;
+      maxValue += range * 0.1;
+
+      const xForIndex = index => {
+        if (chartData.length === 1) return padding.left + chartWidth / 2;
+        return padding.left + (index / (chartData.length - 1)) * chartWidth;
+      };
+
+      const yForValue = value => {
+        return padding.top + ((maxValue - value) / (maxValue - minValue)) * chartHeight;
+      };
+
+      ctx.font = "12px Pretendard, Arial";
+      ctx.textBaseline = "middle";
+
+      const yTicks = 5;
+
+      for (let i = 0; i <= yTicks; i++) {
+        const ratio = i / yTicks;
+        const value = maxValue - ratio * (maxValue - minValue);
+        const y = padding.top + ratio * chartHeight;
+
+        ctx.strokeStyle = "#e6eaf0";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#667085";
+        ctx.textAlign = "right";
+        ctx.fillText(formatWon(value), padding.left - 10, y);
+      }
+
+      const firstYear = chartData[0].year;
+      const lastYear = chartData[chartData.length - 1].year;
+
+      chartData.forEach((item, index) => {
+        const shouldShow =
+          item.year === firstYear ||
+          item.year === lastYear ||
+          (item.year - firstYear) % SETTINGS.graphTickYears === 0;
+
+        if (!shouldShow) return;
+
+        const x = xForIndex(index);
+
+        ctx.strokeStyle = "#edf0f5";
+        ctx.beginPath();
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.stroke();
+
+        ctx.fillStyle = "#667085";
+        ctx.textAlign = "center";
+        ctx.fillText(item.year + "년", x, height - 30);
+      });
+
+      const zeroY = yForValue(0);
+      if (zeroY >= padding.top && zeroY <= padding.top + chartHeight) {
+        ctx.strokeStyle = "#aeb7c5";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, zeroY);
+        ctx.lineTo(width - padding.right, zeroY);
+        ctx.stroke();
+      }
+
+      const drawSeries = (key, strokeStyle, lineWidth, dash = []) => {
+        ctx.save();
+        ctx.setLineDash(dash);
+        ctx.beginPath();
+
+        chartData.forEach((item, index) => {
+          const x = xForIndex(index);
+          const y = yForValue(item[key]);
+
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = lineWidth;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.stroke();
+        ctx.restore();
+      };
+
+      if (displayMode !== "real") {
+        const gradient = ctx.createLinearGradient(
+          0,
+          padding.top,
+          0,
+          padding.top + chartHeight
+        );
+        gradient.addColorStop(0, "rgba(49, 87, 213, 0.20)");
+        gradient.addColorStop(1, "rgba(49, 87, 213, 0.02)");
+
+        ctx.beginPath();
+
+        chartData.forEach((item, index) => {
+          const x = xForIndex(index);
+          const y = yForValue(item.assets);
+
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+
+        ctx.lineTo(xForIndex(chartData.length - 1), padding.top + chartHeight);
+        ctx.lineTo(xForIndex(0), padding.top + chartHeight);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        drawSeries("assets", "#3157d5", 3);
+      }
+
+      if (displayMode !== "nominal") {
+        drawSeries("realAssets", "#e67e22", 3, [8, 5]);
+      }
+
+      // 범례
+      ctx.textAlign = "left";
+      ctx.font = "12px Pretendard, Arial";
+      let legendX = padding.left;
+
+      if (displayMode !== "real") {
+        ctx.strokeStyle = "#3157d5";
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(legendX, 23);
+        ctx.lineTo(legendX + 24, 23);
+        ctx.stroke();
+        ctx.fillStyle = "#465166";
+        ctx.fillText("명목 자산", legendX + 31, 23);
+        legendX += 105;
+      }
+
+      if (displayMode !== "nominal") {
+        ctx.strokeStyle = "#e67e22";
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 5]);
+        ctx.beginPath();
+        ctx.moveTo(legendX, 23);
+        ctx.lineTo(legendX + 24, 23);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#465166";
+        ctx.fillText("현재가치 자산", legendX + 31, 23);
+      }
+
+      if (hoveredIndex >= 0 && hoveredIndex < chartData.length) {
+        const item = chartData[hoveredIndex];
+        const x = xForIndex(hoveredIndex);
+
+        ctx.strokeStyle = "rgba(49, 87, 213, 0.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.stroke();
+
+        const drawPoint = (value, strokeStyle) => {
+          const y = yForValue(value);
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          ctx.strokeStyle = strokeStyle;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        };
+
+        if (displayMode !== "real") drawPoint(item.assets, "#3157d5");
+        if (displayMode !== "nominal") drawPoint(item.realAssets, "#e67e22");
+      }
+
+      canvas._chartGeometry = {
+        padding,
+        chartWidth,
+        chartHeight,
+        xForIndex,
+        yForValue
+      };
+    }
+
+    function showTooltip(clientX, clientY) {
+      const canvas = document.getElementById("assetChart");
+      const rect = canvas.getBoundingClientRect();
+      const geometry = canvas._chartGeometry;
+
+      if (!geometry || !chartData.length) return;
+
+      const mouseX = clientX - rect.left;
+      const mouseY = clientY - rect.top;
+
+      const left = geometry.padding.left;
+      const right = left + geometry.chartWidth;
+      const top = geometry.padding.top;
+      const bottom = top + geometry.chartHeight;
+
+      if (mouseX < left || mouseX > right || mouseY < top || mouseY > bottom) {
+        hideTooltip();
+        return;
+      }
+
+      const ratio = (mouseX - left) / geometry.chartWidth;
+      const index = chartData.length === 1
+        ? 0
+        : Math.round(ratio * (chartData.length - 1));
+
+      hoveredIndex = Math.max(0, Math.min(chartData.length - 1, index));
+      const item = chartData[hoveredIndex];
+
+      const tooltip = document.getElementById("chartTooltip");
+      const x = geometry.xForIndex(hoveredIndex);
+      const y = geometry.yForValue(item.assets);
+
+      tooltip.style.display = "block";
+      tooltip.style.left = x + "px";
+      tooltip.style.top = Math.max(65, y) + "px";
+      const displayMode = document.getElementById("showRealAssets").value;
+
+      let tooltipLines = `<strong>${item.year}년</strong>`;
+
+      if (displayMode !== "real") {
+        tooltipLines += `<br />명목 자산: ${formatWon(item.assets)}`;
+      }
+
+      if (displayMode !== "nominal") {
+        tooltipLines += `<br />현재가치 자산: ${formatWon(item.realAssets)}`;
+      }
+
+      tooltip.innerHTML = tooltipLines;
+
+      drawChart();
+    }
+
+    function hideTooltip() {
+      hoveredIndex = -1;
+      document.getElementById("chartTooltip").style.display = "none";
+      drawChart();
+    }
+
+    const canvas = document.getElementById("assetChart");
+
+    canvas.addEventListener("mousemove", event => {
+      showTooltip(event.clientX, event.clientY);
+    });
+
+    canvas.addEventListener("mouseleave", hideTooltip);
+
+    canvas.addEventListener("touchstart", event => {
+      const touch = event.touches[0];
+      if (touch) showTooltip(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    canvas.addEventListener("touchmove", event => {
+      const touch = event.touches[0];
+      if (touch) showTooltip(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    window.addEventListener("resize", () => {
+      if (!chartData.length) return;
+      resizeCanvas();
+      drawChart();
+    });
+
+
+    let hasCalculated = false;
+    let liveUpdateTimer = null;
+
+    function scheduleLiveUpdate() {
+      if (!hasCalculated) return;
+
+      clearTimeout(liveUpdateTimer);
+      liveUpdateTimer = setTimeout(() => {
+        calculateAssets({
+          scroll: false,
+          showAlerts: false
+        });
+      }, 180);
+    }
+
+    document.addEventListener("input", event => {
+      if (event.target.matches("input, select")) {
+        scheduleLiveUpdate();
+      }
+    });
+
+    document.addEventListener("change", event => {
+      if (event.target.matches("input, select")) {
+        scheduleLiveUpdate();
+      }
+    });
+
+    const originalCalculateAssets = calculateAssets;
+
+    calculateAssets = function(options = {}) {
+      hasCalculated = true;
+      return originalCalculateAssets(options);
+    };
+
+    document.addEventListener("click", event => {
+      if (event.target.closest(".btn-danger")) {
+        setTimeout(scheduleLiveUpdate, 0);
+      }
+    });
+
+    // 처음 열었을 때 보이는 예시 입력값
+    addIncomeRow({
+      start: 2026,
+      end: 2030,
+      amount: 60000000,
+      unit: "annual"
+    });
+
+    addIncomeRow({
+      start: 2031,
+      end: 2050,
+      amount: 70000000,
+      unit: "annual"
+    });
+
+    addFixedExpenseRow({
+      start: 2035,
+      end: 2045,
+      amount: 700000,
+      unit: "monthly",
+      name: "주거·대출 추가 지출"
+    });
+
+    addOneTimeExpenseRow({
+      year: 2032,
+      amount: 30000000,
+      name: "자동차 구매"
+    });
+  </script>
+</body>
+</html>
